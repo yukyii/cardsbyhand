@@ -16,20 +16,18 @@
         .technical-font { font-family: 'Pangolin', cursive; }
         
         .paper-blank {
-            background: #fffaf0; /* Warm off-white base */
+            background: #fffaf0;
             border: 1px solid #e5e5e5;
             position: relative;
-            /* Changed to visible so selection UI isn't clipped */
             overflow: visible;
             isolation: isolate;
         }
 
-        /* Stronger, layered paper texture overlay */
         .paper-texture-layer {
             position: absolute;
             inset: 0;
             pointer-events: none;
-            z-index: 25; /* Above canvas (10), below stickers (30+) */
+            z-index: 25;
             opacity: 0.12;
             background-image: 
                 url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
@@ -37,7 +35,6 @@
             mix-blend-mode: multiply;
         }
 
-        /* Subtle vignette/shading for each individual page */
         .page-surface-depth {
             position: absolute;
             inset: 0;
@@ -89,7 +86,6 @@
             transform: translateY(40px);
         }
 
-        /* Custom scrollbar for quirkiness */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
@@ -99,14 +95,17 @@
   "imports": {
     "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
-    "react-dom": "https://esm.sh/react-dom@^19.2.4"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "react-dom": "https://esm.sh/react-dom@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
 </head>
 <body>
     <div id="root"></div>
+    <!-- Point to the index.tsx file directly -->
+    <script type="module" src="/index.tsx"></script>
 </body>
 </html>
