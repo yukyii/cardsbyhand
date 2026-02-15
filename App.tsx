@@ -796,7 +796,7 @@ export default function App() {
                   isReadOnly={false}
                   onInteractionStart={startInteraction}
                   onSelect={() => setSelected({ pg: undefined, id: e.id })} 
-                  onDrop={(cx, cy) => dropEl(e.id, 'bin', cx, cy)} 
+                  onDrop={(cx: number, cy: number) => dropEl(e.id, 'bin', cx, cy)} 
                   onResize={(s: number) => scaleEl(e.id, undefined, s)} 
                   onRotate={(r: number) => rotateEl(e.id, undefined, r)} 
                   onUpdate={(u: any) => updateEl(e.id, undefined, u)} 
@@ -865,7 +865,7 @@ export default function App() {
                           isReadOnly={isViewMode}
                           onInteractionStart={startInteraction}
                           onSelect={() => setSelected({ pg, id: layer.id })} 
-                          onDrop={(cx, cy) => dropEl(layer.id, 'page', cx, cy, pg)} 
+                          onDrop={(cx: number, cy: number) => dropEl(layer.id, 'page', cx, cy, pg)} 
                           onResize={(s: number) => scaleEl(layer.id, pg, s)} 
                           onRotate={(r: number) => rotateEl(layer.id, pg, r)}
                           onUpdate={(u: any) => updateEl(layer.id, pg, u)}
