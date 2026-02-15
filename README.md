@@ -1,7 +1,20 @@
-## Handmade digital cards for loved ones ♡
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-Since I was a kid, one of my favourite things to do was to make cards for my loved ones. I'd hoard a bunch of scrap materials and cute stickers, and when a special day came around, I'd unleash them onto paper and spin them into messages filled with love. To me, crafting cards by hand has always been a wonderfully tactile, intuitive and serendipitous experience.
+# Run and deploy your AI Studio app
 
-This website is my attempt at digitizing the handmade. Cobble together random materials, sprinkle some doodles around, and send a mouse-made card to your special someone!
+This contains everything you need to run your app locally.
 
-Made with Google AI Studio, memories and human imagination.
+View your app in AI Studio: https://ai.studio/apps/drive/12zf1G6yGcGMn1kqE11kzPfHHZGySei0X
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

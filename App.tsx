@@ -322,13 +322,18 @@ function DraggableElement({ element, isSelected, canResize, isReadOnly, onSelect
 
     const up = (e: MouseEvent) => {
       if (isDragging) {
+        const finalX = e.clientX - meta.current.dragOffset.x;
+        const finalY = e.clientY - meta.current.dragOffset.y;
+        
+        // Critical: Calculate and execute drop BEFORE releasing dragging state
+        // to prevent the component from briefly rendering in its old parent container
+        const wasDropped = onDrop(finalX, finalY);
+        
         setIsDragging(false);
-        const moved = Math.sqrt(Math.pow(e.clientX - meta.current.startPos.x, 2) + Math.pow(e.clientY - meta.current.startPos.y, 2)) > 5;
-        if (moved) { 
-          if (!onDrop(screenPos.x, screenPos.y)) { 
-            setIsReturning(true); 
-            setTimeout(() => setIsReturning(false), 300); 
-          } 
+        
+        if (!wasDropped) {
+          setIsReturning(true);
+          setTimeout(() => setIsReturning(false), 300);
         }
       }
       setIsResizing(false); 
@@ -344,7 +349,7 @@ function DraggableElement({ element, isSelected, canResize, isReadOnly, onSelect
       window.removeEventListener('mousemove', move); 
       window.removeEventListener('mouseup', up); 
     };
-  }, [isDragging, isResizing, resizeMode, isRotating, element.x, element.y, offsetX, screenPos, element.rotation, isReadOnly]);
+  }, [isDragging, isResizing, resizeMode, isRotating, element.x, element.y, offsetX, screenPos, element.rotation, isReadOnly, onDrop, onUpdate, onResize, onRotate]);
 
   const elWidth = element.width || 200;
   const elHeight = element.height || 40;
@@ -355,7 +360,8 @@ function DraggableElement({ element, isSelected, canResize, isReadOnly, onSelect
     height: element.type === 'text' ? `${elHeight}px` : 'auto',
     transform: baseTransform,
     position: isDragging || isReturning ? 'fixed' : 'absolute',
-    transition: isDragging ? 'none' : 'all 0.5s cubic-bezier(0.2, 1, 0.3, 1)',
+    // Only transition when returning to origin, not while dragging or dropping
+    transition: isReturning ? 'all 0.5s cubic-bezier(0.2, 1, 0.3, 1)' : 'none',
   };
 
   const contentStyle: React.CSSProperties = {
@@ -468,7 +474,6 @@ export default function App() {
   const [past, setPast] = useState<CardState[]>([]);
   const [future, setFuture] = useState<CardState[]>([]);
   
-  // Critical: Store a snapshot of state BEFORE an interaction starts
   const checkpointRef = useRef<CardState | null>(null);
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -483,7 +488,6 @@ export default function App() {
   const binRef = useRef<HTMLDivElement>(null);
   const uiPortalRef = useRef<HTMLDivElement>(null);
 
-  // New: Check for View Mode
   const isViewMode = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('view') === 'true';
@@ -633,7 +637,8 @@ export default function App() {
 
   const dropEl = (id: string, src: 'page' | 'bin', cx: number, cy: number, sid?: PageID) => {
     if (isViewMode) return false;
-    const cr = cardRef.current?.getBoundingClientRect(); const br = binRef.current?.getBoundingClientRect();
+    const cr = cardRef.current?.getBoundingClientRect(); 
+    const br = binRef.current?.getBoundingClientRect();
     const elToDrop = (src === 'page' ? state.pages[sid!].elements : state.bin).find(e => e.id === id);
     if (!elToDrop) return false;
 
@@ -643,6 +648,7 @@ export default function App() {
 
     if (checkpointRef.current) pushToHistory(checkpointRef.current);
 
+    // Drop in Bin
     if (br && cx >= br.left && cx <= br.right && cy >= br.top && cy <= br.bottom) {
       setState(s => {
         const n = JSON.parse(JSON.stringify(s)); 
@@ -657,6 +663,7 @@ export default function App() {
       setSelected({ pg: undefined, id }); return true;
     }
 
+    // Drop in Card
     if (cr && cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom) {
       const lx = cx - cr.left;
       let pg: PageID = currentStep === 1 ? (lx < CARD_WIDTH ? 'insideLeft' : 'insideRight') : STEPS[currentStep].pages[0];
@@ -751,13 +758,9 @@ export default function App() {
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     const encoded = encodeState(state);
-    // Create the "View Only" URL
     const shareUrl = `${window.location.origin}${window.location.pathname}?view=true#${encoded}`;
-    
     navigator.clipboard.writeText(shareUrl);
     alert('Shareable link copied to clipboard! Share this with your friends.');
-    
-    // Optional: Open in new tab to preview
     window.open(shareUrl, '_blank');
   };
 
@@ -817,14 +820,14 @@ export default function App() {
             <button 
               disabled={past.length === 0}
               onClick={undo}
-              className={`text-lg uppercase tracking-[0.2em] font-bold transition-all ${past.length === 0 ? 'opacity-10 cursor-not-allowed scale-90' : 'opacity-40 hover:opacity-100 hover:scale-110 text-white'}`}
+              className={`text-sm uppercase tracking-[0.2em] font-bold transition-all ${past.length === 0 ? 'opacity-10 cursor-not-allowed scale-90' : 'opacity-40 hover:opacity-100 hover:scale-110 text-white'}`}
             >
               Undo
             </button>
             <button 
               disabled={future.length === 0}
               onClick={redo}
-              className={`text-lg uppercase tracking-[0.2em] font-bold transition-all ${future.length === 0 ? 'opacity-10 cursor-not-allowed scale-90' : 'opacity-40 hover:opacity-100 hover:scale-110 text-white'}`}
+              className={`text-sm uppercase tracking-[0.2em] font-bold transition-all ${future.length === 0 ? 'opacity-10 cursor-not-allowed scale-90' : 'opacity-40 hover:opacity-100 hover:scale-110 text-white'}`}
             >
               Redo
             </button>
@@ -832,9 +835,9 @@ export default function App() {
         )}
         
         {!isViewMode ? (
-          <button onClick={handleShare} className="absolute top-12 right-12 text-lg uppercase tracking-[0.2em] font-bold opacity-40 hover:opacity-100 text-white">Share Link</button>
+          <button onClick={handleShare} className="absolute top-12 right-12 text-sm uppercase tracking-[0.2em] font-bold opacity-40 hover:opacity-100 text-white">Share Link</button>
         ) : (
-          <div className="absolute top-12 left-12 text-lg uppercase tracking-[0.2em] font-bold text-white/40">A card for you</div>
+          <div className="absolute top-12 left-12 text-sm uppercase tracking-[0.2em] font-bold text-white/40">A card for you</div>
         )}
 
         <span className="mb-4 text-sm uppercase tracking-widest font-bold text-white/50">{STEPS[currentStep].label}</span>
